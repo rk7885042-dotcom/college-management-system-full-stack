@@ -43,6 +43,17 @@ def init_db():
             )
         """)
 
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS results (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id INTEGER NOT NULL,
+                subject TEXT NOT NULL,
+                max_marks INTEGER NOT NULL DEFAULT 100,
+                obtained_marks INTEGER NOT NULL,
+                FOREIGN KEY (student_id) REFERENCES students(id)
+            )
+        """)
+
         count = conn.execute(
             "SELECT COUNT(*) FROM notices"
         ).fetchone()[0]
@@ -126,6 +137,10 @@ def students():
 @admin_required
 def delete_student(student_id):
     with get_db() as conn:
+        conn.execute(
+            "DELETE FROM results WHERE student_id = ?",
+            (student_id,)
+        )
         cursor = conn.execute(
             "DELETE FROM students WHERE id = ?",
             (student_id,)
@@ -139,7 +154,7 @@ def delete_student(student_id):
     return redirect(url_for("students"))
 
 
-# STUDENT REGISTRATION WITH SERVER-SIDE VALIDATION
+# STUDENT REGISTRATION
 @app.route("/students/add", methods=["GET", "POST"])
 def add_student():
     if request.method == "POST":
@@ -152,18 +167,13 @@ def add_student():
         errors = []
 
         if not re.fullmatch(r"[A-Za-z ]{2,50}", name):
-            errors.append(
-                "Invalid name. Use letters only (2–50 characters)."
-            )
+            errors.append("Invalid name. Use letters only (2–50 characters).")
 
         if not re.fullmatch(r"[A-Za-z0-9-]{2,20}", roll_no):
-            errors.append(
-                "Invalid roll number. Use 2–20 letters, numbers or hyphens."
-            )
+            errors.append("Invalid roll number. Use 2–20 letters, numbers or hyphens.")
 
         if email and not re.fullmatch(
-            r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
-            email
+            r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", email
         ):
             errors.append("Invalid email format.")
 
@@ -198,6 +208,152 @@ def add_student():
     return render_template("student_form.html")
 
 
+# MARKS AND RESULTS PAGE
+@app.route("/results")
+@admin_required
+def results_page():
+    with get_db() as conn:
+        students_list = conn.execute(
+            "SELECT * FROM students ORDER BY name"
+        ).fetchall()
+
+        result_rows = conn.execute("""
+            SELECT results.*, students.name, students.roll_no
+            FROM results
+            JOIN students ON results.student_id = students.id
+            ORDER BY students.name, results.subject
+        """).fetchall()
+
+    summaries = {}
+
+    for row in result_rows:
+        sid = row["student_id"]
+
+        if sid not in summaries:
+            summaries[sid] = {
+                "name": row["name"],
+                "roll_no": row["roll_no"],
+                "total": 0,
+                "obtained": 0,
+                "count": 0,
+                "failed": False
+            }
+
+        summaries[sid]["total"] += row["max_marks"]
+        summaries[sid]["obtained"] += row["obtained_marks"]
+        summaries[sid]["count"] += 1
+
+        if row["obtained_marks"] < row["max_marks"] * 0.33:
+            summaries[sid]["failed"] = True
+
+    for summary in summaries.values():
+        summary["percentage"] = round(
+            summary["obtained"] / summary["total"] * 100, 2
+        ) if summary["total"] else 0
+
+        if summary["failed"]:
+            summary["status"] = "Fail"
+            summary["grade"] = "F"
+        else:
+            summary["status"] = "Pass"
+            percentage = summary["percentage"]
+
+            if percentage >= 80:
+                summary["grade"] = "A"
+            elif percentage >= 60:
+                summary["grade"] = "B"
+            elif percentage >= 45:
+                summary["grade"] = "C"
+            elif percentage >= 33:
+                summary["grade"] = "D"
+            else:
+                summary["grade"] = "F"
+
+    return render_template(
+        "results.html",
+        students=students_list,
+        results=result_rows,
+        summaries=summaries
+    )
+
+
+# ADD STUDENT MARKS (ADMIN ONLY)
+@app.route("/results/add", methods=["POST"])
+@admin_required
+def add_result():
+    student_id = request.form.get("student_id", type=int)
+    subject = request.form.get("subject", "").strip()
+    obtained_marks = request.form.get("obtained_marks", type=int)
+
+    if not student_id or not subject or obtained_marks is None:
+        flash("Please fill all result fields.", "error")
+        return redirect(url_for("results_page"))
+
+    if not re.fullmatch(r"[A-Za-z0-9 &()-]{2,60}", subject):
+        flash("Please enter a valid subject name.", "error")
+        return redirect(url_for("results_page"))
+
+    if obtained_marks < 0 or obtained_marks > 100:
+        flash("Marks must be between 0 and 100.", "error")
+        return redirect(url_for("results_page"))
+
+    with get_db() as conn:
+        student = conn.execute(
+            "SELECT id FROM students WHERE id = ?",
+            (student_id,)
+        ).fetchone()
+
+        if not student:
+            flash("Student not found.", "error")
+            return redirect(url_for("results_page"))
+
+        count = conn.execute(
+            "SELECT COUNT(*) FROM results WHERE student_id = ?",
+            (student_id,)
+        ).fetchone()[0]
+
+        if count >= 5:
+            flash("This student already has 5 subject results.", "error")
+            return redirect(url_for("results_page"))
+
+        duplicate = conn.execute("""
+            SELECT id FROM results
+            WHERE student_id = ? AND LOWER(subject) = LOWER(?)
+        """, (student_id, subject)).fetchone()
+
+        if duplicate:
+            flash("Marks for this subject already exist.", "error")
+            return redirect(url_for("results_page"))
+
+        conn.execute("""
+            INSERT INTO results
+            (student_id, subject, max_marks, obtained_marks)
+            VALUES (?, ?, 100, ?)
+        """, (student_id, subject, obtained_marks))
+
+    flash("Marks added successfully.", "success")
+    return redirect(url_for("results_page"))
+
+
+# DELETE RESULT (ADMIN ONLY)
+@app.route("/results/<int:result_id>/delete", methods=["POST"])
+@admin_required
+def delete_result(result_id):
+    with get_db() as conn:
+        cursor = conn.execute(
+            "DELETE FROM results WHERE id = ?",
+            (result_id,)
+        )
+
+    if cursor.rowcount:
+        flash("Result deleted successfully.", "success")
+    else:
+        flash("Result not found.", "error")
+
+    return redirect(url_for("results_page"))
+
+
+# NOTICES
 @app.route("/notices", methods=["GET", "POST"])
 def notices_page():
     if request.method == "POST":
@@ -240,6 +396,7 @@ def delete_notice(notice_id):
     return redirect(url_for("notices_page"))
 
 
+# ADMIN LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
