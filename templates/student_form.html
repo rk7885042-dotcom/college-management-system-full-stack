@@ -1,4 +1,4 @@
- 
+
 {% extends "base.html" %}
 
 {% block title %}Student Registration{% endblock %}
@@ -13,37 +13,47 @@
 </section>
 
 <section class="panel">
-    <form method="POST" action="{{ url_for('add_student') }}" class="student-form">
+    <form method="POST" action="{{ url_for('add_student') }}" class="student-form" id="registrationForm">
 
         <div>
             <label>Student Name</label>
-            <input type="text" name="name" placeholder="Enter student name" required>
+            <input type="text" name="name" id="name"
+                   placeholder="Enter student name" required
+                   pattern="[A-Za-z ]{2,50}"
+                   title="Enter a name using letters only.">
+            <small id="nameMsg"></small>
         </div>
 
         <div>
             <label>Roll Number</label>
-            <input type="text" name="roll_no" placeholder="Enter roll number" required>
+            <input type="text" name="roll_no" id="roll_no"
+                   placeholder="Enter roll number" required
+                   pattern="[A-Za-z0-9-]{2,20}">
+            <small id="rollMsg"></small>
         </div>
 
         <div>
-            <label>Email Address</label>
-            <input type="email" name="email" placeholder="Enter email address">
+            <label>Email Address (Optional)</label>
+            <input type="email" name="email" id="email"
+                   placeholder="Example: student@gmail.com">
+            <small id="emailMsg">Demo email is accepted.</small>
         </div>
 
         <div>
             <label>Course</label>
-            <select name="course" required>
+            <select name="course" id="course" required>
                 <option value="">Select Course</option>
                 <option value="BCA">BCA</option>
                 <option value="BA">BA</option>
                 <option value="BCom">B.Com</option>
                 <option value="BSc">B.Sc</option>
             </select>
+            <small id="courseMsg"></small>
         </div>
 
         <div>
             <label>Semester</label>
-            <select name="semester" required>
+            <select name="semester" id="semester" required>
                 <option value="">Select Semester</option>
                 <option value="1">1st Semester</option>
                 <option value="2">2nd Semester</option>
@@ -52,6 +62,7 @@
                 <option value="5">5th Semester</option>
                 <option value="6">6th Semester</option>
             </select>
+            <small id="semesterMsg"></small>
         </div>
 
         <div class="full-field">
@@ -60,5 +71,74 @@
 
     </form>
 </section>
+
+<script>
+const form = document.getElementById("registrationForm");
+
+function checkField(input, message, valid, success, error) {
+    if (input.value.trim() === "" && !input.required) {
+        message.textContent = "";
+        return true;
+    }
+
+    if (valid) {
+        message.textContent = "✓ " + success;
+        message.style.color = "green";
+        return true;
+    } else {
+        message.textContent = "✗ " + error;
+        message.style.color = "red";
+        return false;
+    }
+}
+
+const nameInput = document.getElementById("name");
+const rollInput = document.getElementById("roll_no");
+const emailInput = document.getElementById("email");
+const courseInput = document.getElementById("course");
+const semesterInput = document.getElementById("semester");
+
+nameInput.addEventListener("input", () => {
+    checkField(nameInput, document.getElementById("nameMsg"),
+        /^[A-Za-z ]{2,50}$/.test(nameInput.value.trim()),
+        "Valid name", "Enter letters only (2–50 characters)");
+});
+
+rollInput.addEventListener("input", () => {
+    checkField(rollInput, document.getElementById("rollMsg"),
+        /^[A-Za-z0-9-]{2,20}$/.test(rollInput.value.trim()),
+        "Valid roll number", "Use 2–20 letters, numbers or hyphens");
+});
+
+emailInput.addEventListener("input", () => {
+    checkField(emailInput, document.getElementById("emailMsg"),
+        emailInput.value === "" || emailInput.checkValidity(),
+        "Valid email format", "Enter a valid email format");
+});
+
+courseInput.addEventListener("change", () => {
+    checkField(courseInput, document.getElementById("courseMsg"),
+        courseInput.value !== "", "Course selected", "Select a course");
+});
+
+semesterInput.addEventListener("change", () => {
+    checkField(semesterInput, document.getElementById("semesterMsg"),
+        semesterInput.value !== "", "Semester selected", "Select a semester");
+});
+
+form.addEventListener("submit", function(event) {
+    const valid =
+        /^[A-Za-z ]{2,50}$/.test(nameInput.value.trim()) &&
+        /^[A-Za-z0-9-]{2,20}$/.test(rollInput.value.trim()) &&
+        (emailInput.value === "" || emailInput.checkValidity()) &&
+        courseInput.value !== "" &&
+        semesterInput.value !== "";
+
+    if (!valid) {
+        event.preventDefault();
+        alert("Please correct the invalid information.");
+    }
+});
+</script>
 
 {% endblock %}
