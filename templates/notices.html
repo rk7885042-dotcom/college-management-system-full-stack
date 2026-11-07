@@ -1,4 +1,4 @@
-
+ 
 {% extends "base.html" %}
 
 {% block title %}College Notices{% endblock %}
@@ -13,22 +13,45 @@
 </section>
 
 <section class="panel">
+    <h2>Add New Notice</h2>
+
+    <form method="POST" action="{{ url_for('notices_page') }}" class="student-form">
+
+        <div class="full-field">
+            <label>Notice Title</label>
+            <input type="text" name="title"
+                   placeholder="Enter notice title" required>
+        </div>
+
+        <div class="full-field">
+            <label>Notice Details</label>
+            <textarea name="details" rows="4"
+                      placeholder="Write notice details here..."
+                      required></textarea>
+        </div>
+
+        <div class="full-field">
+            <button type="submit" class="btn">Publish Notice</button>
+        </div>
+
+    </form>
+</section>
+
+<section class="panel">
     <h2>Important Announcements</h2>
 
-    <div class="notice-card">
-        <h3>Welcome to College Management Portal</h3>
-        <p>Students can use this portal to access college information and registration facilities.</p>
-    </div>
+    {% if notices %}
+        {% for notice in notices %}
+        <div class="notice-card">
+            <h3>{{ notice.title }}</h3>
+            <p>{{ notice.details }}</p>
+            <small>{{ notice.created_at }}</small>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No notices available.</p>
+    {% endif %}
 
-    <div class="notice-card">
-        <h3>Examination Updates</h3>
-        <p>Please contact the college office for the latest examination datesheet and timetable.</p>
-    </div>
-
-    <div class="notice-card">
-        <h3>Student Registration</h3>
-        <p>Students can submit their details through the online registration form.</p>
-    </div>
 </section>
 
 {% endblock %}
