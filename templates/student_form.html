@@ -1,3 +1,4 @@
+ 
 {% extends "base.html" %}
 
 {% block title %}Student Registration{% endblock %}
@@ -12,7 +13,7 @@
 </section>
 
 <section class="panel">
-    <form method="POST" action="{{ url_for('student_form') }}" class="student-form">
+    <form method="POST" action="{{ url_for('add_student') }}" class="student-form">
 
         <div>
             <label>Student Name</label>
@@ -20,13 +21,13 @@
         </div>
 
         <div>
-            <label>Email Address</label>
-            <input type="email" name="email" placeholder="Enter email" required>
+            <label>Roll Number</label>
+            <input type="text" name="roll_no" placeholder="Enter roll number" required>
         </div>
 
         <div>
-            <label>Phone Number</label>
-            <input type="tel" name="phone" placeholder="Enter phone number" required>
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="Enter email address">
         </div>
 
         <div>
@@ -37,6 +38,19 @@
                 <option value="BA">BA</option>
                 <option value="BCom">B.Com</option>
                 <option value="BSc">B.Sc</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Semester</label>
+            <select name="semester" required>
+                <option value="">Select Semester</option>
+                <option value="1">1st Semester</option>
+                <option value="2">2nd Semester</option>
+                <option value="3">3rd Semester</option>
+                <option value="4">4th Semester</option>
+                <option value="5">5th Semester</option>
+                <option value="6">6th Semester</option>
             </select>
         </div>
 
