@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +10,7 @@
 <body>
 
 <header class="topbar">
-    <a href="{{ url_for('index') }}" class="brand">
+    <a href="{{ url_for('dashboard') }}" class="brand">
         <span class="brand-mark">C</span>
         <span>College <span class="brand-accent">Portal</span>
             <small>MANAGEMENT SYSTEM</small>
@@ -17,11 +18,11 @@
     </a>
 
     <nav class="nav">
-        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('dashboard') }}">Home</a>
         <a href="{{ url_for('about') }}">About</a>
         <a href="{{ url_for('students') }}">Students</a>
-        <a href="{{ url_for('student_form') }}">Register</a>
-        <a href="{{ url_for('notices') }}">Notices</a>
+        <a href="{{ url_for('add_student') }}">Register</a>
+        <a href="{{ url_for('notices_page') }}">Notices</a>
     </nav>
 </header>
 
