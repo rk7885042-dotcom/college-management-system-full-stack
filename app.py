@@ -43,15 +43,20 @@ def init_db():
             )
         """)
 
-        count = conn.execute("SELECT COUNT(*) FROM notices").fetchone()[0]
+        count = conn.execute(
+            "SELECT COUNT(*) FROM notices"
+        ).fetchone()[0]
 
         if count == 0:
             conn.executemany(
                 "INSERT INTO notices (title, details) VALUES (?, ?)",
                 [
-                    ("Welcome to College Portal", "Welcome to our college website."),
-                    ("Semester Registration", "Contact the college office for registration dates."),
-                    ("Library Reminder", "Please return borrowed books on time.")
+                    ("Welcome to College Portal",
+                     "Welcome to our college website."),
+                    ("Semester Registration",
+                     "Contact the college office for registration dates."),
+                    ("Library Reminder",
+                     "Please return borrowed books on time.")
                 ]
             )
 
@@ -68,11 +73,18 @@ def admin_required(function):
 @app.route("/")
 def dashboard():
     with get_db() as conn:
-        total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
-        total_notices = conn.execute("SELECT COUNT(*) FROM notices").fetchone()[0]
+        total_students = conn.execute(
+            "SELECT COUNT(*) FROM students"
+        ).fetchone()[0]
+
+        total_notices = conn.execute(
+            "SELECT COUNT(*) FROM notices"
+        ).fetchone()[0]
+
         recent_students = conn.execute(
             "SELECT * FROM students ORDER BY id DESC LIMIT 5"
         ).fetchall()
+
         notices = conn.execute(
             "SELECT * FROM notices ORDER BY id DESC LIMIT 4"
         ).fetchall()
@@ -97,13 +109,34 @@ def students():
                 WHERE name LIKE ? OR roll_no LIKE ?
                 OR course LIKE ? OR semester LIKE ? OR email LIKE ?
                 ORDER BY id DESC
-            """, (f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%")).fetchall()
+            """, (
+                f"%{q}%", f"%{q}%", f"%{q}%",
+                f"%{q}%", f"%{q}%"
+            )).fetchall()
         else:
             rows = conn.execute(
                 "SELECT * FROM students ORDER BY id DESC"
             ).fetchall()
 
     return render_template("students.html", students=rows, q=q)
+
+
+# DELETE STUDENT (ADMIN ONLY)
+@app.route("/students/<int:student_id>/delete", methods=["POST"])
+@admin_required
+def delete_student(student_id):
+    with get_db() as conn:
+        cursor = conn.execute(
+            "DELETE FROM students WHERE id = ?",
+            (student_id,)
+        )
+
+    if cursor.rowcount == 0:
+        flash("Student record not found.", "error")
+    else:
+        flash("Student record deleted successfully.", "success")
+
+    return redirect(url_for("students"))
 
 
 # STUDENT REGISTRATION WITH SERVER-SIDE VALIDATION
@@ -119,13 +152,18 @@ def add_student():
         errors = []
 
         if not re.fullmatch(r"[A-Za-z ]{2,50}", name):
-            errors.append("Invalid name. Use letters only (2–50 characters).")
+            errors.append(
+                "Invalid name. Use letters only (2–50 characters)."
+            )
 
         if not re.fullmatch(r"[A-Za-z0-9-]{2,20}", roll_no):
-            errors.append("Invalid roll number. Use 2–20 letters, numbers or hyphens.")
+            errors.append(
+                "Invalid roll number. Use 2–20 letters, numbers or hyphens."
+            )
 
         if email and not re.fullmatch(
-            r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", email
+            r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
+            email
         ):
             errors.append("Invalid email format.")
 
@@ -175,6 +213,7 @@ def notices_page():
                     "INSERT INTO notices (title, details) VALUES (?, ?)",
                     (title, details)
                 )
+
             flash("Notice published successfully.", "success")
             return redirect(url_for("notices_page"))
 
@@ -192,7 +231,10 @@ def notices_page():
 @admin_required
 def delete_notice(notice_id):
     with get_db() as conn:
-        conn.execute("DELETE FROM notices WHERE id = ?", (notice_id,))
+        conn.execute(
+            "DELETE FROM notices WHERE id = ?",
+            (notice_id,)
+        )
 
     flash("Notice deleted successfully.", "success")
     return redirect(url_for("notices_page"))
