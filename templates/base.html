@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}College Management System{% endblock %}</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
@@ -113,7 +114,7 @@
     </div>
 
     <nav>
-        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('dashboard') }}">Home</a>
         <a href="{{ url_for('about') }}">About</a>
         <a href="{{ url_for('students') }}">Students</a>
         <a href="{{ url_for('add_student') }}">Register</a>
