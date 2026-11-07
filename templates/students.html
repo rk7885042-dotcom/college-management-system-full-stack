@@ -1,1 +1,52 @@
+{% extends "base.html" %}
 
+{% block title %}Students - College Management System{% endblock %}
+
+{% block content %}
+
+<section class="page-head">
+    <div>
+        <span class="eyebrow">STUDENT DIRECTORY</span>
+        <h1>Registered <em>Students</em></h1>
+    </div>
+</section>
+
+<section class="panel">
+    <h2>Student Records</h2>
+
+    <form method="GET" action="{{ url_for('students') }}">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search students...">
+        <button type="submit" class="btn">Search</button>
+    </form>
+
+    {% if students %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Roll Number</th>
+                    <th>Course</th>
+                    <th>Semester</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.roll_no }}</td>
+                    <td>{{ student.course }}</td>
+                    <td>{{ student.semester }}</td>
+                    <td>{{ student.email }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No students registered yet.</p>
+    {% endif %}
+</section>
+
+{% endblock %}
