@@ -1,24 +1,26 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import sqlite3
+import os
 from pathlib import Path
+from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = "college-portal-secret-key"
+app.secret_key = os.environ.get("SECRET_KEY", "temporary-development-key")
 
 DB_PATH = Path(__file__).with_name("college.db")
 
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
-# DATABASE CONNECTION
+
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-# CREATE DATABASE TABLES
 def init_db():
     with get_db() as conn:
-
         conn.execute("""
             CREATE TABLE IF NOT EXISTS students (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,20 +51,27 @@ def init_db():
                 [
                     ("Welcome to College Portal",
                      "Welcome to our college website."),
-
                     ("Semester Registration",
                      "Contact the college office for registration dates."),
-
                     ("Library Reminder",
                      "Please return borrowed books on time.")
                 ]
             )
 
 
+# ADMIN LOGIN REQUIRED
+def admin_required(function):
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        if not session.get("admin_logged_in"):
+            return redirect(url_for("login"))
+        return function(*args, **kwargs)
+    return wrapper
+
+
 # HOME PAGE
 @app.route("/")
 def dashboard():
-
     with get_db() as conn:
         total_students = conn.execute(
             "SELECT COUNT(*) FROM students"
@@ -92,11 +101,9 @@ def dashboard():
 # STUDENTS PAGE AND SEARCH
 @app.route("/students")
 def students():
-
     q = request.args.get("q", "").strip()
 
     with get_db() as conn:
-
         if q:
             rows = conn.execute("""
                 SELECT * FROM students
@@ -106,32 +113,20 @@ def students():
                 OR semester LIKE ?
                 OR email LIKE ?
                 ORDER BY id DESC
-            """, (
-                f"%{q}%",
-                f"%{q}%",
-                f"%{q}%",
-                f"%{q}%",
-                f"%{q}%"
-            )).fetchall()
-
+            """, (f"%{q}%", f"%{q}%", f"%{q}%",
+                  f"%{q}%", f"%{q}%")).fetchall()
         else:
             rows = conn.execute(
                 "SELECT * FROM students ORDER BY id DESC"
             ).fetchall()
 
-    return render_template(
-        "students.html",
-        students=rows,
-        q=q
-    )
+    return render_template("students.html", students=rows, q=q)
 
 
 # STUDENT REGISTRATION
 @app.route("/students/add", methods=["GET", "POST"])
 def add_student():
-
     if request.method == "POST":
-
         name = request.form.get("name", "").strip()
         roll_no = request.form.get("roll_no", "").strip()
         course = request.form.get("course", "").strip()
@@ -144,7 +139,6 @@ def add_student():
 
         try:
             with get_db() as conn:
-
                 conn.execute("""
                     INSERT INTO students
                     (name, roll_no, course, semester, email)
@@ -163,31 +157,17 @@ def add_student():
     return render_template("student_form.html")
 
 
-# DELETE STUDENT
-@app.route("/students/<int:student_id>/delete", methods=["POST"])
-def delete_student(student_id):
-
-    with get_db() as conn:
-        conn.execute(
-            "DELETE FROM students WHERE id = ?",
-            (student_id,)
-        )
-
-    flash("Student deleted successfully.", "success")
-    return redirect(url_for("students"))
-
-
 # NOTICES PAGE
 @app.route("/notices", methods=["GET", "POST"])
 def notices_page():
-
     if request.method == "POST":
+        if not session.get("admin_logged_in"):
+            return redirect(url_for("login"))
 
         title = request.form.get("title", "").strip()
         details = request.form.get("details", "").strip()
 
         if title and details:
-
             with get_db() as conn:
                 conn.execute(
                     "INSERT INTO notices (title, details) VALUES (?, ?)",
@@ -204,16 +184,13 @@ def notices_page():
             "SELECT * FROM notices ORDER BY id DESC"
         ).fetchall()
 
-    return render_template(
-        "notices.html",
-        notices=notices
-    )
+    return render_template("notices.html", notices=notices)
 
 
 # DELETE NOTICE
 @app.route("/notices/<int:notice_id>/delete", methods=["POST"])
+@admin_required
 def delete_notice(notice_id):
-
     with get_db() as conn:
         conn.execute(
             "DELETE FROM notices WHERE id = ?",
@@ -224,13 +201,39 @@ def delete_notice(notice_id):
     return redirect(url_for("notices_page"))
 
 
+# ADMIN LOGIN
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+
+    if request.method == "POST":
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+
+        if not ADMIN_USERNAME or not ADMIN_PASSWORD:
+            error = "Admin login is not configured yet."
+        elif username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session["admin_logged_in"] = True
+            return redirect(url_for("notices_page"))
+        else:
+            error = "Invalid username or password."
+
+    return render_template("login.html", error=error)
+
+
+# ADMIN LOGOUT
+@app.route("/logout")
+def logout():
+    session.pop("admin_logged_in", None)
+    return redirect(url_for("dashboard"))
+
+
 # ABOUT PAGE
 @app.route("/about")
 def about():
     return render_template("about.html")
 
 
-# INITIALIZE DATABASE FOR RENDER
 init_db()
 
 
