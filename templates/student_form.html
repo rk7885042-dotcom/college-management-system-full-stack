@@ -1,1 +1,50 @@
+{% extends "base.html" %}
 
+{% block title %}Student Registration{% endblock %}
+
+{% block content %}
+
+<section class="page-head">
+    <div>
+        <span class="eyebrow">JOIN OUR COLLEGE</span>
+        <h1>Student <em>Registration</em></h1>
+    </div>
+</section>
+
+<section class="panel">
+    <form method="POST" action="{{ url_for('student_form') }}" class="student-form">
+
+        <div>
+            <label>Student Name</label>
+            <input type="text" name="name" placeholder="Enter student name" required>
+        </div>
+
+        <div>
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="Enter email" required>
+        </div>
+
+        <div>
+            <label>Phone Number</label>
+            <input type="tel" name="phone" placeholder="Enter phone number" required>
+        </div>
+
+        <div>
+            <label>Course</label>
+            <select name="course" required>
+                <option value="">Select Course</option>
+                <option value="BCA">BCA</option>
+                <option value="BA">BA</option>
+                <option value="BCom">B.Com</option>
+                <option value="BSc">B.Sc</option>
+            </select>
+        </div>
+
+        <div class="full-field">
+            <button type="submit" class="btn">Submit Registration</button>
+        </div>
+
+    </form>
+</section>
+
+{% endblock %}
