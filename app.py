@@ -1,6 +1,8 @@
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import sqlite3
 import os
+import re
 from pathlib import Path
 from functools import wraps
 
@@ -41,25 +43,19 @@ def init_db():
             )
         """)
 
-        count = conn.execute(
-            "SELECT COUNT(*) FROM notices"
-        ).fetchone()[0]
+        count = conn.execute("SELECT COUNT(*) FROM notices").fetchone()[0]
 
         if count == 0:
             conn.executemany(
                 "INSERT INTO notices (title, details) VALUES (?, ?)",
                 [
-                    ("Welcome to College Portal",
-                     "Welcome to our college website."),
-                    ("Semester Registration",
-                     "Contact the college office for registration dates."),
-                    ("Library Reminder",
-                     "Please return borrowed books on time.")
+                    ("Welcome to College Portal", "Welcome to our college website."),
+                    ("Semester Registration", "Contact the college office for registration dates."),
+                    ("Library Reminder", "Please return borrowed books on time.")
                 ]
             )
 
 
-# ADMIN LOGIN REQUIRED
 def admin_required(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
@@ -69,22 +65,14 @@ def admin_required(function):
     return wrapper
 
 
-# HOME PAGE
 @app.route("/")
 def dashboard():
     with get_db() as conn:
-        total_students = conn.execute(
-            "SELECT COUNT(*) FROM students"
-        ).fetchone()[0]
-
-        total_notices = conn.execute(
-            "SELECT COUNT(*) FROM notices"
-        ).fetchone()[0]
-
+        total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+        total_notices = conn.execute("SELECT COUNT(*) FROM notices").fetchone()[0]
         recent_students = conn.execute(
             "SELECT * FROM students ORDER BY id DESC LIMIT 5"
         ).fetchall()
-
         notices = conn.execute(
             "SELECT * FROM notices ORDER BY id DESC LIMIT 4"
         ).fetchall()
@@ -98,7 +86,6 @@ def dashboard():
     )
 
 
-# STUDENTS PAGE AND SEARCH
 @app.route("/students")
 def students():
     q = request.args.get("q", "").strip()
@@ -107,14 +94,10 @@ def students():
         if q:
             rows = conn.execute("""
                 SELECT * FROM students
-                WHERE name LIKE ?
-                OR roll_no LIKE ?
-                OR course LIKE ?
-                OR semester LIKE ?
-                OR email LIKE ?
+                WHERE name LIKE ? OR roll_no LIKE ?
+                OR course LIKE ? OR semester LIKE ? OR email LIKE ?
                 ORDER BY id DESC
-            """, (f"%{q}%", f"%{q}%", f"%{q}%",
-                  f"%{q}%", f"%{q}%")).fetchall()
+            """, (f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%")).fetchall()
         else:
             rows = conn.execute(
                 "SELECT * FROM students ORDER BY id DESC"
@@ -123,7 +106,7 @@ def students():
     return render_template("students.html", students=rows, q=q)
 
 
-# STUDENT REGISTRATION
+# STUDENT REGISTRATION WITH SERVER-SIDE VALIDATION
 @app.route("/students/add", methods=["GET", "POST"])
 def add_student():
     if request.method == "POST":
@@ -133,8 +116,28 @@ def add_student():
         semester = request.form.get("semester", "").strip()
         email = request.form.get("email", "").strip()
 
-        if not all([name, roll_no, course, semester]):
-            flash("Please fill in all required fields.", "error")
+        errors = []
+
+        if not re.fullmatch(r"[A-Za-z ]{2,50}", name):
+            errors.append("Invalid name. Use letters only (2–50 characters).")
+
+        if not re.fullmatch(r"[A-Za-z0-9-]{2,20}", roll_no):
+            errors.append("Invalid roll number. Use 2–20 letters, numbers or hyphens.")
+
+        if email and not re.fullmatch(
+            r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", email
+        ):
+            errors.append("Invalid email format.")
+
+        if course not in ["BCA", "BA", "BCom", "BSc"]:
+            errors.append("Please select a valid course.")
+
+        if semester not in ["1", "2", "3", "4", "5", "6"]:
+            errors.append("Please select a valid semester.")
+
+        if errors:
+            for error in errors:
+                flash(error, "error")
             return render_template("student_form.html")
 
         try:
@@ -157,7 +160,6 @@ def add_student():
     return render_template("student_form.html")
 
 
-# NOTICES PAGE
 @app.route("/notices", methods=["GET", "POST"])
 def notices_page():
     if request.method == "POST":
@@ -173,7 +175,6 @@ def notices_page():
                     "INSERT INTO notices (title, details) VALUES (?, ?)",
                     (title, details)
                 )
-
             flash("Notice published successfully.", "success")
             return redirect(url_for("notices_page"))
 
@@ -187,21 +188,16 @@ def notices_page():
     return render_template("notices.html", notices=notices)
 
 
-# DELETE NOTICE
 @app.route("/notices/<int:notice_id>/delete", methods=["POST"])
 @admin_required
 def delete_notice(notice_id):
     with get_db() as conn:
-        conn.execute(
-            "DELETE FROM notices WHERE id = ?",
-            (notice_id,)
-        )
+        conn.execute("DELETE FROM notices WHERE id = ?", (notice_id,))
 
     flash("Notice deleted successfully.", "success")
     return redirect(url_for("notices_page"))
 
 
-# ADMIN LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
@@ -221,14 +217,12 @@ def login():
     return render_template("login.html", error=error)
 
 
-# ADMIN LOGOUT
 @app.route("/logout")
 def logout():
     session.pop("admin_logged_in", None)
     return redirect(url_for("dashboard"))
 
 
-# ABOUT PAGE
 @app.route("/about")
 def about():
     return render_template("about.html")
