@@ -1,70 +1,142 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>{% block title %}College Management System{% endblock %}</title>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #263238;
+        }
+
+        .college-header {
+            background: linear-gradient(135deg, #102b50, #174b78);
+            color: white;
+            text-align: center;
+            padding: 24px 15px;
+        }
+
+        .college-header h1 {
+            font-size: 27px;
+            margin-bottom: 8px;
+        }
+
+        .college-header p {
+            font-size: 15px;
+            color: #dcecff;
+        }
+
+        .portal-name {
+            background: #f0b429;
+            color: #172b4d;
+            text-align: center;
+            padding: 12px;
+            font-size: 21px;
+            font-weight: bold;
+        }
+
+        nav {
+            background: #102b50;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 12px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 11px 16px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            background: #f0b429;
+            color: #102b50;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 20px;
+            min-height: 55vh;
+        }
+
+        footer {
+            background: #102b50;
+            color: white;
+            text-align: center;
+            padding: 20px 10px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .college-header h1 {
+                font-size: 20px;
+            }
+
+            nav a {
+                padding: 9px 10px;
+                font-size: 13px;
+            }
+
+            main {
+                padding: 12px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<header class="topbar">
+    <header class="college-header">
+        <h1>Shaheed Darshan Singh Pheruman Memorial College for Women</h1>
+        <p>Rayya, Amritsar, Punjab</p>
+    </header>
 
-    <a href="{{ url_for('dashboard') }}" class="brand">
-        <span class="brand-mark">C</span>
+    <div class="portal-name">
+        College Management System
+    </div>
 
-        <span>
-            College <span class="brand-accent">Portal</span>
-            <small>MANAGEMENT SYSTEM</small>
-        </span>
-    </a>
-
-    <nav class="nav">
-
-        <a href="{{ url_for('dashboard') }}">Home</a>
-
+    <nav>
+        <a href="{{ url_for('index') }}">Home</a>
         <a href="{{ url_for('about') }}">About</a>
-
         <a href="{{ url_for('students') }}">Students</a>
-
         <a href="{{ url_for('add_student') }}">Register</a>
+        <a href="{{ url_for('notices') }}">Notices</a>
 
-        <a href="{{ url_for('notices_page') }}">Notices</a>
-
-        {% if session.get('admin_logged_in') %}
-
-        <a href="{{ url_for('results_page') }}">Marks & Results</a>
-
-        <a href="{{ url_for('logout') }}">Logout</a>
-
+        {% if session.get('admin') %}
+            <a href="{{ url_for('results') }}">Marks & Results</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
         {% else %}
-
-        <a href="{{ url_for('login') }}">Admin Login</a>
-
+            <a href="{{ url_for('login') }}">Admin Login</a>
         {% endif %}
-
     </nav>
 
-</header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
 
-<main class="container">
+    <footer>
+        <p>Shaheed Darshan Singh Pheruman Memorial College for Women, Rayya</p>
+        <p>College Management System | Developed for Academic Project</p>
+    </footer>
 
-    {% block content %}{% endblock %}
-
-</main>
-
-<footer>
-
-    <p>College Management System | Rayya</p>
-
-</footer>
-
-<script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
 </html>
