@@ -1,44 +1,70 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{% block title %}College Management System{% endblock %}</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
 <header class="topbar">
+
     <a href="{{ url_for('dashboard') }}" class="brand">
         <span class="brand-mark">C</span>
-        <span>College <span class="brand-accent">Portal</span>
+
+        <span>
+            College <span class="brand-accent">Portal</span>
             <small>MANAGEMENT SYSTEM</small>
         </span>
     </a>
 
     <nav class="nav">
+
         <a href="{{ url_for('dashboard') }}">Home</a>
+
         <a href="{{ url_for('about') }}">About</a>
+
         <a href="{{ url_for('students') }}">Students</a>
+
         <a href="{{ url_for('add_student') }}">Register</a>
+
         <a href="{{ url_for('notices_page') }}">Notices</a>
 
         {% if session.get('admin_logged_in') %}
-            <a href="{{ url_for('logout') }}">Logout</a>
+
+        <a href="{{ url_for('results_page') }}">Marks & Results</a>
+
+        <a href="{{ url_for('logout') }}">Logout</a>
+
         {% else %}
-            <a href="{{ url_for('login') }}">Admin Login</a>
+
+        <a href="{{ url_for('login') }}">Admin Login</a>
+
         {% endif %}
+
     </nav>
+
 </header>
 
 <main class="container">
+
     {% block content %}{% endblock %}
+
 </main>
 
 <footer>
+
     <p>College Management System | Rayya</p>
+
 </footer>
 
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+
 </body>
 </html>
