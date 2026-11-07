@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Notices{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">CAMPUS BULLETIN</span><h1>College <em>notices</em></h1><p>Share important announcements with your campus community.</p></div></section>
+<div class="content-grid notice-layout">
+  <section class="panel"><div class="panel-heading"><div><span class="eyebrow">ANNOUNCEMENTS</span><h2>Published notices</h2></div><span class="pill">{{ notices|length }} total</span></div>
+  {% for n in notices %}<article class="notice-card"><div class="notice-card-top"><span class="notice-label">CAMPUS NOTICE</span><small>{{ n.created_at }}</small></div><h3>{{ n.title }}</h3><p>{{ n.details }}</p><form method="post" action="{{ url_for('delete_notice', notice_id=n.id) }}" onsubmit="return confirm('Delete this notice?')"><button class="delete-btn" type="submit">Delete notice</button></form></article>{% else %}<p class="muted">No notices published.</p>{% endfor %}
+  </section>
+  <section class="panel"><span class="eyebrow">CREATE UPDATE</span><h2>Publish a notice</h2><p class="muted">Add a clear title and the details students need to know.</p><form method="post" class="notice-form"><label>Notice title *<input name="title" required maxlength="150" placeholder="e.g. Library timing update"></label><label>Notice details *<textarea name="details" required rows="6" maxlength="2000" placeholder="Write the announcement here…"></textarea></label><button class="btn btn-primary" type="submit">Publish notice ↗</button></form></section>
+</div>
+{% endblock %}

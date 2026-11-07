@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow">YOUR CAMPUS, CONNECTED</span>
+    <h1>Manage your college.<br><em>Make every day count.</em></h1>
+    <p>A simple central place to manage student records, share announcements, and keep campus information organized.</p>
+    <div class="hero-actions"><a class="btn btn-light" href="{{ url_for('students') }}">Explore Students ↗</a><a class="btn btn-outline" href="{{ url_for('notices_page') }}">View Notices</a></div>
+  </div>
+  <div class="hero-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="book-card"><span>✦</span><b>LEARN</b><small>GROW · ACHIEVE</small></div><div class="float-tag tag-a">🎓 Student-first</div><div class="float-tag tag-b">✓ Organized campus</div></div>
+</section>
+<section class="stats-grid">
+  <article class="stat-card"><div class="stat-icon purple">♙</div><span>Total Students</span><strong>{{ total_students }}</strong><small>Records in the system</small></article>
+  <article class="stat-card"><div class="stat-icon orange">▤</div><span>College Notices</span><strong>{{ total_notices }}</strong><small>Announcements published</small></article>
+  <article class="stat-card"><div class="stat-icon green">⌂</div><span>Portal Status</span><strong class="status-text">Active</strong><small>Local demo environment</small></article>
+</section>
+<section class="content-grid">
+  <div class="panel">
+    <div class="panel-heading"><div><span class="eyebrow">DIRECTORY</span><h2>Recent students</h2></div><a class="text-link" href="{{ url_for('students') }}">View all →</a></div>
+    {% if recent_students %}
+      <div class="table-wrap"><table><thead><tr><th>Student</th><th>Roll number</th><th>Course</th></tr></thead><tbody>
+      {% for s in recent_students %}<tr><td><div class="student-name"><span class="avatar">{{ s.name[:1]|upper }}</span>{{ s.name }}</div></td><td>{{ s.roll_no }}</td><td>{{ s.course }}</td></tr>{% endfor %}
+      </tbody></table></div>
+    {% else %}<div class="empty-state"><span>♙</span><h3>No students added yet</h3><p>Add a student record to see it here.</p><a class="btn btn-primary" href="{{ url_for('add_student') }}">+ Add student</a></div>{% endif %}
+  </div>
+  <div class="panel notice-panel">
+    <div class="panel-heading"><div><span class="eyebrow">CAMPUS UPDATES</span><h2>Latest notices</h2></div><a class="text-link" href="{{ url_for('notices_page') }}">All notices →</a></div>
+    {% for n in notices %}<article class="notice-item"><span class="notice-dot"></span><div><h3>{{ n.title }}</h3><p>{{ n.details }}</p><small>{{ n.created_at }}</small></div></article>{% else %}<p class="muted">No notices yet.</p>{% endfor %}
+  </div>
+</section>
+{% endblock %}
