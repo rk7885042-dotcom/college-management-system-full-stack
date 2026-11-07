@@ -1,1 +1,20 @@
+{% extends "base.html" %}
 
+{% block title %}Home - College Management System{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="hero-copy">
+        <span class="eyebrow">WELCOME TO OUR COLLEGE</span>
+        <h1>College Management <em>System</em></h1>
+        <p>Manage students, explore college information and stay updated with the latest notices.</p>
+
+        <div class="hero-actions">
+            <a href="{{ url_for('student_form') }}" class="btn">Register Student</a>
+            <a href="{{ url_for('students') }}" class="btn">View Students</a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
