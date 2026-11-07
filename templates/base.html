@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{% block title %}College Management System{% endblock %}</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -118,7 +119,7 @@
         <a href="{{ url_for('about') }}">About</a>
         <a href="{{ url_for('students') }}">Students</a>
         <a href="{{ url_for('add_student') }}">Register</a>
-        <a href="{{ url_for('notices') }}">Notices</a>
+        <a href="{{ url_for('notices_page') }}">Notices</a>
 
         {% if session.get('admin') %}
             <a href="{{ url_for('results') }}">Marks & Results</a>
