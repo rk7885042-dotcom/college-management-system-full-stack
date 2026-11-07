@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}Students - College Management System{% endblock %}
@@ -29,6 +30,9 @@
                     <th>Course</th>
                     <th>Semester</th>
                     <th>Email</th>
+                    {% if session.get('admin_logged_in') %}
+                    <th>Action</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -39,6 +43,16 @@
                     <td>{{ student.course }}</td>
                     <td>{{ student.semester }}</td>
                     <td>{{ student.email }}</td>
+
+                    {% if session.get('admin_logged_in') %}
+                    <td>
+                        <form method="POST"
+                              action="{{ url_for('delete_student', student_id=student.id) }}"
+                              onsubmit="return confirm('Are you sure you want to delete this student record?');">
+                            <button type="submit" class="btn">Delete</button>
+                        </form>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
