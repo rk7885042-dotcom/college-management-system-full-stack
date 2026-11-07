@@ -16,24 +16,19 @@
     <h2>Add New Notice</h2>
 
     <form method="POST" action="{{ url_for('notices_page') }}" class="student-form">
-
         <div class="full-field">
             <label>Notice Title</label>
-            <input type="text" name="title"
-                   placeholder="Enter notice title" required>
+            <input type="text" name="title" placeholder="Enter notice title" required>
         </div>
 
         <div class="full-field">
             <label>Notice Details</label>
-            <textarea name="details" rows="4"
-                      placeholder="Write notice details here..."
-                      required></textarea>
+            <textarea name="details" rows="4" placeholder="Write notice details here..." required></textarea>
         </div>
 
         <div class="full-field">
             <button type="submit" class="btn">Publish Notice</button>
         </div>
-
     </form>
 </section>
 
@@ -46,12 +41,15 @@
             <h3>{{ notice.title }}</h3>
             <p>{{ notice.details }}</p>
             <small>{{ notice.created_at }}</small>
+
+            <form method="POST" action="{{ url_for('delete_notice', notice_id=notice.id) }}" onsubmit="return confirm('Are you sure you want to delete this notice?');">
+                <button type="submit" class="btn">Delete Notice</button>
+            </form>
         </div>
         {% endfor %}
     {% else %}
         <p>No notices available.</p>
     {% endif %}
-
 </section>
 
 {% endblock %}
