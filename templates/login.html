@@ -8,29 +8,49 @@
     <div>
         <span class="eyebrow">ADMIN ACCESS</span>
         <h1>Admin <em>Login</em></h1>
+        <p>Login to manage college notices.</p>
     </div>
 </section>
 
 <section class="panel">
-    <form method="POST" class="student-form">
+
+    <h2>Welcome Admin</h2>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}"
+          class="student-form">
 
         <div class="full-field">
             <label>Username</label>
-            <input type="text" name="username"
-                   placeholder="Enter admin username" required>
+            <input
+                type="text"
+                name="username"
+                placeholder="Enter admin username"
+                required
+            >
         </div>
 
         <div class="full-field">
             <label>Password</label>
-            <input type="password" name="password"
-                   placeholder="Enter admin password" required>
+            <input
+                type="password"
+                name="password"
+                placeholder="Enter admin password"
+                required
+            >
         </div>
 
         <div class="full-field">
-            <button type="submit" class="btn">Login</button>
+            <button type="submit" class="btn">
+                Login
+            </button>
         </div>
 
     </form>
+
 </section>
 
 {% endblock %}
