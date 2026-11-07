@@ -116,16 +116,25 @@
 
     <nav>
         <a href="{{ url_for('dashboard') }}">Home</a>
+
         <a href="{{ url_for('about') }}">About</a>
+
         <a href="{{ url_for('students') }}">Students</a>
+
         <a href="{{ url_for('add_student') }}">Register</a>
+
         <a href="{{ url_for('notices_page') }}">Notices</a>
 
-        {% if session.get('admin') %}
-            <a href="{{ url_for('results') }}">Marks & Results</a>
+        {% if session.get('admin_logged_in') %}
+
+            <a href="{{ url_for('results_page') }}">Marks & Results</a>
+
             <a href="{{ url_for('logout') }}">Logout</a>
+
         {% else %}
+
             <a href="{{ url_for('login') }}">Admin Login</a>
+
         {% endif %}
     </nav>
 
